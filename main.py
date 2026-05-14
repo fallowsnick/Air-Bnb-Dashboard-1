@@ -52,7 +52,7 @@ if min_reviews > 0:
 
 # ── Fetch Listings ───────────────────────────────────────────────
 @st.cache_data(ttl=3600)
-def fetch_listings(filters, sort_by, sort_dir, page_size):
+def fetch_listings(filters_key, sort_by, sort_dir, page_size, filters_json):
     response = requests.post(
         f"{BASE_URL}/listings/search/market",
         headers={"x-api-key": API_KEY},
@@ -62,13 +62,27 @@ def fetch_listings(filters, sort_by, sort_dir, page_size):
                 "region": "Nova Scotia",
                 "locality": "Halifax"
             },
-            "filter": filters,
+            "filter": filters_json,
             "sort": {sort_by: sort_dir},
             "pagination": {
                 "page_size": page_size,
                 "offset": 0
             }
         }
+    )
+    if response.status_code == 200:
+        return response.json()
+    else:
+        st.error(f"API error {response.status_code}: {response.text}")
+        return None
+
+with st.spinner("Fetching Halifax listings..."):
+    data = fetch_listings(
+        filters_key=str(sorted(filters.items())),
+        sort_by=sort_by,
+        sort_dir=sort_dir,
+        page_size=page_size,
+        filters_json=filters
     )
     if response.status_code == 200:
         return response.json()
