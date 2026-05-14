@@ -37,8 +37,6 @@ st.sidebar.caption("⚠️ ttm = trailing 12 months | l90d = last 90 days")
 
 # ── Build Filter Object ──────────────────────────────────────────
 filters = {}
-
-# Only show active listings by default
 filters["ttm_revenue"] = {"gt": 0}
 
 if room_type != "All":
@@ -83,19 +81,6 @@ with st.spinner("Fetching Halifax listings..."):
         sort_dir=sort_dir,
         page_size=page_size,
         filters_json=filters
-    )
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error(f"API error {response.status_code}: {response.text}")
-        return None
-
-with st.spinner("Fetching Halifax listings..."):
-    data = fetch_listings(
-        filters=str(filters),
-        sort_by=sort_by,
-        sort_dir=sort_dir,
-        page_size=page_size
     )
 
 if not data:
@@ -239,14 +224,12 @@ with tab3:
             st.markdown(f"## {info.get('listing_name', 'Unknown')}")
             st.caption(info.get("description", "") or "")
 
-            # Key metrics row 1
             col1, col2, col3, col4 = st.columns(4)
             col1.metric("TTM Revenue", f"${perf.get('ttm_revenue', 0):,.0f}")
             col2.metric("Avg Nightly Rate", f"${perf.get('ttm_avg_rate', 0):,.0f}")
             col3.metric("Occupancy", f"{perf.get('ttm_occupancy', 0)*100:.1f}%")
             col4.metric("Avg Stay", f"{perf.get('ttm_avg_length_of_stay', 0) or 0:.1f} nights")
 
-            # Key metrics row 2
             col5, col6, col7, col8 = st.columns(4)
             col5.metric("Total Days Tracked", perf.get("ttm_total_days", 0))
             col6.metric("Available Days", perf.get("ttm_available_days", 0))
@@ -290,7 +273,6 @@ with tab3:
                 st.write(f"**Professional Mgmt:** {'✅' if host.get('professional_management') else '❌'}")
                 st.write(f"**Instant Book:** {'✅' if booking.get('instant_book') else '❌'}")
 
-            # Amenities
             st.markdown("### 🛋️ Amenities")
             amenities = prop.get("amenities", [])
             if amenities:
@@ -300,7 +282,6 @@ with tab3:
             else:
                 st.write("No amenities listed")
 
-            # TTM vs L90D comparison
             st.markdown("---")
             st.markdown("### 📊 Trailing 12 Months vs Last 90 Days")
             compare_df = pd.DataFrame({
